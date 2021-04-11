@@ -24,7 +24,7 @@
 rm(list=ls())
 
 # Set the working directory
-setwd("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/Predator-prey-models-GitHub")
+setwd("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub")
 
 datum = read.csv("captures.csv", header = TRUE)	# Load the datafile
 
@@ -402,7 +402,7 @@ ModRes = createAicTable(ModelsCB)
 (CBtopmods = subset(CBtab, wgt > 0.05))
 
 # I note that some models have warning messages about the number of significant digits 
-# reached during ML convergence; "Parameter esimates converged to approximately #.## signifcant digits."
+# reached during ML convergence; "Parameter estimates converged to approximately #.## signifcant digits."
 # I considered these errors and found a situation where Jim Hines discussed this topic 
 # on the PRESENCE forum here: http://www.phidot.org/forum/viewtopic.php?f=11&t=3491
 # He says that as long as the number of significant digits is >=2, parameter estimates are accurate 
@@ -1842,6 +1842,19 @@ close(clip)
 #############	predators on each species  			          #############
 ##########################################################################
 
+# Load in pictures for graphs
+library(png); library(grid); library(ggplot2)
+CRABRA <- readPNG("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub/CRABRA.png")
+OOPPUM <- readPNG("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub/OOPPUM.png")
+NORHUM <- readPNG("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub/NORHUM.png")
+CTENID <- readPNG("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub/CTENID.png")
+
+CRABRA <- rasterGrob(CRABRA, interpolate=TRUE)
+OOPPUM <- rasterGrob(OOPPUM, interpolate=TRUE)
+NORHUM <- rasterGrob(NORHUM, interpolate=TRUE)
+CTENID <- rasterGrob(CTENID, interpolate=TRUE)
+
+
 #######################
 ###### A) CRABRA ###### 
 #######################
@@ -1883,7 +1896,8 @@ psiBa = exp(modBa)/(1+exp(modBa))
 ## Bind psiA, psiBA, and psiBa together, and plot them all in one graph
 occupancy = cbind(litter,psiA,psiBA,psiBa)
 
-# FIGURE 2A
+### FIGURE 2A
+# Base plot
 plot(litter, psiA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
 	axes=FALSE,	cex.lab=1.2, cex.axis=1.5,
 	xlab="Log(leaf-litter mass [g])", 
@@ -1893,9 +1907,115 @@ axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4.5, cex.axis=1.3)
 lines(litter, psiBA, lty=2, lwd=4)
 lines(litter, psiBa, lty=2, lwd=4, col="darkgray")
 text(0.7,0.9, "A", cex=2.5)
-legend("bottomright", c(expression(psi^A),expression(psi^BA),
-	expression(psi^Ba)), inset=0.03, cex=1.1, box.lwd=3,
-	lty=c(1,2,2), col=c("black","black","darkgray"),lwd=c(3,3,3))
+legend("bottomright", c(expression(paste(psi^A)),
+       expression(paste(psi^BA)),expression(paste(psi^Ba))), 
+       inset=0.03, cex=1.1, box.lwd=3, lty=c(1,2,2), 
+       col=c("black","black","darkgray"),lwd=c(3,3,3))
+
+# Ggplot
+occupancy = as.data.frame(occupancy)
+(fig2a = ggplot(occupancy, aes(x=litter, y=psiA)) + 
+    geom_line(lwd=1.5, colour="black") +
+    labs(x="Log(leaf-litter mass [g])", 
+         y=expression('Proportion of sites occupied '~psi),
+         cex=2.5) +
+    scale_y_continuous(limits=c(0,1)) +
+    theme_classic() +
+    theme(axis.text = element_text(size=12, colour="black"),
+          axis.title = element_text(size=14),
+          axis.line = element_line(size = 1.25)))
+(fig2a = fig2a + geom_line(aes(litter, y=psiBA), lwd=1.5, colour='black', linetype="dashed"))
+(fig2a = fig2a + geom_line(aes(x=litter, y=psiBa), colour='darkgrey', lwd=1.5, linetype="dashed"))
+
+## Ggplot with legend
+occupancy = as.data.frame(occupancy)
+(fig2a = ggplot(occupancy, aes(x=litter, y=psiA)) + 
+    geom_line(aes(litter, y=psiA, colour='blue'), lwd=1.5) +
+    geom_line(aes(litter, y=psiBA, colour='orange'), 
+              lwd=1.5, linetype="dashed") +
+    geom_line(aes(x=litter, y=psiBa, colour='darkgreen'), 
+              lwd=1.5, linetype="dashed") + 
+    labs(x="Log(leaf-litter mass [g])", 
+         y=expression('Proportion of sites occupied '~psi),
+         cex=2.5) +
+    scale_y_continuous(limits=c(0,1)) +
+    theme_classic() +
+    theme(axis.text = element_text(size=12, colour="black"),
+          axis.title = element_text(size=14),
+          axis.line = element_line(size = 1.25)) +
+  scale_color_identity(guide = 'legend') +
+  scale_colour_manual(name = 'Parameter',
+                      values =c('blue'='blue','orange'='orange','darkgreen'='darkgreen'), 
+                      labels = c(expression(paste(psi^A,'    ')),
+                                 expression(paste(psi^BA,'     ')),
+                                 expression(paste(psi^Ba,'     ')))))
+
+
+
+
+
+
+
+
+
+
+
+(fig2a = ggplot() + geom_line(data=occupancy[,c(1:2)], aes(x=litter, y=psiA, colour="black"), lwd=1.5) +
+    labs(x="Log(leaf-litter mass [g])", 
+         y=expression('Proportion of sites occupied '~psi),
+         cex=2.5) +
+    scale_y_continuous(limits=c(0,1)) +
+    theme_classic() +
+    theme(axis.text = element_text(size=12, colour="black"),
+          axis.title = element_text(size=14),
+          axis.line = element_line(size = 1.25)))
+(fig2a = geom_line(occupancy[,c(1,3)], aes(x=litter, y=psiBA, colour='black'), lwd=1.5, linetype="dashed"))
+(fig2a = fig2a + geom_line(occupancy[,c(1,4)], aes(x=litter, y=psiBa, colour='darkgrey'), lwd=1.5, linetype="dashed") +
+    scale_colour_manual(name = 'Groups',
+                        values = c('psiA'='black','psiBA'='black', 'psiBa'='darkgrey'),
+                        labels = c(expression(paste(psi^A,'    ')),
+                                   expression(paste(psi^BA,'     ')),
+                                   expression(paste(psi^Ba,'     ')))))
+
+
+litter = c(litter,litter,litter)
+group = c(rep("psiA",length(psiA)),rep("psiBA",length(psiBA)),rep("psiBa",length(psiBa)))
+response = c(psiA,psiBA,psiBa)
+occupancy = data.frame(litter,group,response)
+
+(fig2a = ggplot(occupancy, aes(x=litter, y=response, group=group)) +
+    geom_line(aes(linetype=group, col=group), lwd=2) +
+    labs(x="Log(leaf-litter mass [g])", y=expression('Proportion of sites occupied '~psi)) +
+    theme_classic())
+
+
+
+
+
+
+
+
+
+
+plot(litter, psiA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+     axes=FALSE,	cex.lab=1.2, cex.axis=1.5,
+     xlab="Log(leaf-litter mass [g])", 
+     ylab=expression('Proportion of sites occupied '~psi))
+axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4.5, cex.axis=1.3)
+axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4.5, cex.axis=1.3)
+lines(litter, psiBA, lty=2, lwd=4)
+lines(litter, psiBa, lty=2, lwd=4, col="darkgray")
+text(0.7,0.9, "A", cex=2.5)
+legend("bottomright", c(expression(paste(psi^A,'    ')),
+                        expression(paste(psi^BA,'     ')),expression(paste(psi^Ba,'     '))), 
+       inset=0.03, cex=1.1, box.lwd=3, lty=c(1,2,2), 
+       col=c("black","black","darkgray"),lwd=c(3,3,3))
+annotation_custom(CRABRA, xmin=4.25, xmax=4.5, ymax=0.28)
+
+
+fig1b <- fig1b + annotation_custom(g, xmin=-95, xmax=-82, ymax=28.5)
+plot(fig1b)
+
 
 # Species interaction factor, given variation in leaf-litter
 # FIGURE 3A
@@ -1907,6 +2027,23 @@ axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4, cex.axis=1.3)
 axis(2, c(-0.1,0,0.33,0.66,1.0,1.33,1.66,2.00), lwd=4, cex.axis=1.3)
 abline(h=1, lwd=4, col="darkgray",lty=3)
 text(0.7,1.8, "A", cex=2.5)
+
+
+
+
+
+
+
+
+
+
+
+## Plot the two maps side by side
+library(patchwork)
+figure1ab = fig1a + fig1b + plot_layout(byrow=TRUE)
+ggsave("figure1ab.png", width=14, height=6.5)
+
+
 
 
 
