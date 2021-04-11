@@ -4,9 +4,21 @@
 ########## Relationship between predatory spiders and their 	############# 
 ########## prey frogs and lizards, at La Selva, Costa Rica		#############
 ########## 		    -- B Folt, March 2020 --		     			      #############
+##########          Re-examined April 2021                    #############
 ############################################################################
 ############################################################################
 ############################################################################
+
+### 11 April 2021
+### NOTE: This script was written with R version 3.5 and this version must be used. 
+###       More recent versions of R operate with different rules and fail to 
+###       perform tasks. I switched from R v. 4.0.2 back to v. 3.5 by navigating 
+###       Tools > Global Options > Browsing to select the folder with v. 3.5
+###       (Macintosh HD > Library > Frameworks > R.frameworks > Versions > 3.5).
+###       This caused the data handling languages (Section I) to operate as intended.
+###       I also was unable to load RPresence using R v. 4.0.2, and was only able to
+###       load and use the package when I had reverted back to R v. 3.5.
+
 
 # Clear the workspace
 rm(list=ls())
@@ -139,6 +151,7 @@ assign(paste0(s,"detections"), DetHist4)
 } # End the species loop
 
 head(CRABRAdetections,10)	# E.g.,
+tail(CRABRAdetections,10)	# E.g.,
 
 
 ######## B -- Create vectors describing arthropod abundance
@@ -185,17 +198,23 @@ head(CTENIDvsNORHUM, 20)
 ### Tabulate the number of surveys, number of detections for
 ### frogs, lizards, and spiders
 
-sum(na.omit(CRABRAdetections[,5:7]))
-sum(na.omit(OOPPUMdetections[,5:7]))
-sum(na.omit(NORHUMdetections[,5:7]))
-sum(na.omit(cteniddetections[,5:7]))
-sum(subset(CRABRAdetections, LitterMass != "NA")[,5:7])
-sum(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])
-sum(subset(NORHUMdetections, LitterMass != "NA")[,5:7])
-sum(subset(cteniddetections, LitterMass != "NA")[,5:7])
+length(na.omit(subset(CRABRAdetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(CRABRAdetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(CRABRAdetections, LitterMass != "NA")[,5:7])) # Number of observations
+na.omit(subset(CRABRAdetections, LitterMass != "NA")) # The data
 
-head(NORHUMdetections)
-summary(NORHUMdetections$Season)
+length(na.omit(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])) # Number of observations
+
+length(na.omit(subset(NORHUMdetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(NORHUMdetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(NORHUMdetections, LitterMass != "NA")[,5:7])) # Number of observations
+
+length(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])) # Number of observations
+
 
 
 ###########################################################################

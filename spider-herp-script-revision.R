@@ -3,7 +3,7 @@
 ############################################################################
 ########## Relationship between predatory spiders and their 	############# 
 ########## prey frogs and lizards, at La Selva, Costa Rica		#############
-########## 		    -- B Folt, March 2020 --		     			      #############
+########## 		    -- B Folt, April 2021 --		     			      #############
 ############################################################################
 ############################################################################
 ############################################################################
@@ -12,7 +12,7 @@
 rm(list=ls())
 
 # Set the working directory
-setwd("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/Predator-prey-models-GitHub")
+setwd("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub")
 
 datum = read.csv("captures.csv", header = TRUE)	# Load the datafile
 
@@ -34,9 +34,9 @@ library(tidyr)
 datum = subset(datum, Location != "NA")
 
 # Change cells from "C#" to simple numbers
-for (i in 1:21){
-  cell = paste0("C",i)
-  datum[datum==cell] = i
+for (c in 1:21){
+  cell = paste0("C",c)
+  datum[datum==cell] = c
 }
 datum$Cell = as.numeric(datum$Cell)
 
@@ -64,26 +64,25 @@ detections = matrix(0, nrow = 21, ncol = 5)
 
 # Initiate the DETECTION HISTORY for-loop
 
-for (i in 1:14){					# For each plot, 1:14
+for (i in 1:14){  # For each plot, 1:14
   
-  plot = subset(herp, TreeNo == i)	# Subset to a plot
+  plot = subset(herp, TreeNo == i)  # Subset to a plot
   
   if(length(plot[,1])>0){
     
-    for (j in 1:9){						# For each month, 1:9
+    for (j in 1:9){ # For each month, 1:9
       
-      month = subset(plot, SeshNumeric == j)	# Subset to a month
+      month = subset(plot, SeshNumeric == j)  # Subset to a month
       
       if(length(month[,1])>0){
         
-        for (k in 1:3){					  # For each survey occasion
+        detections = matrix(0, nrow = 21, ncol = 5)
+        
+        for (k in 1:3){ # For each survey occasion
           
-          survey = subset(month, Occ == k)		# Subset to a survey
+          survey = subset(month, Occ == k)  # Subset to a survey
           
           if(length(survey[,1])>0){
-            
-            cells = data.frame(levels(factor(datum$Cell)),rep(NA,21))
-            colnames(cells) = c("Cell","Freq")
             
             (tab = as.data.frame(table(survey$Cell)))	# Tabulate captures by cell
             
@@ -92,21 +91,20 @@ for (i in 1:14){					# For each plot, 1:14
               #  Fill in matrix w/ detections
             }
           }
-        }
+        } 
+      } else {detections = matrix(0, nrow = 21, ncol = 5)}   
         
         detections[,4] = j				# Fill in Month column of matrix
-        detections[,5] = i				# Fill in TreeNo column of matrix
+        detections[,5] = i				# Fill in Tree Number2q column of matrix
         
         DetHist = rbind(DetHist, detections)
         
         # Binds detection history for surveys
         # in a plot and month to a running tally
         # of all surveys among all plots/months
-        
-      }
+      
     }						
-}
-
+  }
 }	# END DETECTION HISTORY for-loops for month and plot
 
 DetHist = DetHist[-c(1),]
@@ -140,10 +138,11 @@ Season[Season==9] = 2
 # Create a new vector, CellNo, which identifies each cell within tree plot
 x = c(1:21)
 #x = c(1,10,11,12,13,14,15,16,17,18,19,2,20,21,3,4,5,6,7,8,9)
-if (s == "CRABRA"){CellNo = as.data.frame(rep(x,378))}
-if (s == "OOPPUM"){CellNo = as.data.frame(rep(x,363))}
-if (s == "NORHUM"){CellNo = as.data.frame(rep(x,339))}
-if (s == "ctenid"){CellNo = as.data.frame(rep(x,330))}
+CellNo = as.data.frame(rep(x,378))
+#if (s == "CRABRA"){CellNo = as.data.frame(rep(x,378))}
+#if (s == "OOPPUM"){CellNo = as.data.frame(rep(x,378))}
+#if (s == "NORHUM"){CellNo = as.data.frame(rep(x,339))}
+#if (s == "ctenid"){CellNo = as.data.frame(rep(x,330))}
 colnames(CellNo) = c("CellNo")
 
 # Change all the counts (which can be greater than 1) to be 1
@@ -168,7 +167,17 @@ assign(paste0(s,"detections"), DetHist4)
 
 } # End the species loop
 
-head(CRABRAdetections,10)	# E.g.,
+head(CRABRAdetections,20)	# E.g., CRABRA
+tail(CRABRAdetections,20)	# E.g., CRABRA
+
+head(OOPPUMdetections,10)	# E.g., OOPPUM
+tail(OOPPUMdetections,20)	# E.g., 
+
+head(NORHUMdetections,10)	# E.g., NORHUM
+tail(NORHUMdetections,20)	# E.g., 
+
+head(cteniddetections,10)	# E.g., CTENIDS
+tail(NORHUMdetections,20)	# E.g., 
 
 
 ######## B -- Create vectors describing arthropod abundance
@@ -215,17 +224,22 @@ head(CTENIDvsNORHUM, 20)
 ### Tabulate the number of surveys, number of detections for
 ### frogs, lizards, and spiders
 
-sum(na.omit(CRABRAdetections[,5:7]))
-sum(na.omit(OOPPUMdetections[,5:7]))
-sum(na.omit(NORHUMdetections[,5:7]))
-sum(na.omit(cteniddetections[,5:7]))
-sum(subset(CRABRAdetections, LitterMass != "NA")[,5:7])
-sum(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])
-sum(subset(NORHUMdetections, LitterMass != "NA")[,5:7])
-sum(subset(cteniddetections, LitterMass != "NA")[,5:7])
+length(na.omit(subset(CRABRAdetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(CRABRAdetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(CRABRAdetections, LitterMass != "NA")[,5:7])) # Number of observations
+na.omit(subset(CRABRAdetections, LitterMass != "NA")) # The data
 
-head(NORHUMdetections)
-summary(NORHUMdetections$Season)
+length(na.omit(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(OOPPUMdetections, LitterMass != "NA")[,5:7])) # Number of observations
+
+length(na.omit(subset(NORHUMdetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(NORHUMdetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(NORHUMdetections, LitterMass != "NA")[,5:7])) # Number of observations
+
+length(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])[,1]) # Number of sites
+length(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])[,1])*3 # Number of surveys
+sum(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])) # Number of observations
 
 
 ###########################################################################
@@ -235,7 +249,7 @@ summary(NORHUMdetections$Season)
 ###########################################################################
 
 # Load the package
-install.packages('/Users/brian/Desktop/RPresence_2.12.24.tar.gz')
+install.packages('/Users/brian/Desktop/RPresence.tar.gz')
 library(RPresence)	 
 
 
