@@ -3,16 +3,28 @@
 ############################################################################
 ########## Relationship between predatory spiders and their 	############# 
 ########## prey frogs and lizards, at La Selva, Costa Rica		#############
-########## 		    -- B Folt, April 2021 --		     			      #############
+########## 		    -- B Folt, March 2020 --		     			      #############
+##########          Re-examined April 2021                    #############
 ############################################################################
 ############################################################################
 ############################################################################
+
+### 11 April 2021
+### NOTE: This script was written with R version 3.5 and this version must be used. 
+###       More recent versions of R operate with different rules and fail to 
+###       perform tasks. I switched from R v. 4.0.2 back to v. 3.5 by navigating 
+###       Tools > Global Options > Browsing to select the folder with v. 3.5
+###       (Macintosh HD > Library > Frameworks > R.frameworks > Versions > 3.5).
+###       This caused the data handling languages (Section I) to operate as intended.
+###       I also was unable to load RPresence using R v. 4.0.2, and was only able to
+###       load and use the package when I had reverted back to R v. 3.5.
+
 
 # Clear the workspace
 rm(list=ls())
 
 # Set the working directory
-setwd("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/GitHub")
+setwd("/Users/brian/Dropbox/Auburn Ph.D. Spider predators/Predator-prey-models-GitHub")
 
 datum = read.csv("captures.csv", header = TRUE)	# Load the datafile
 
@@ -31,14 +43,7 @@ library(tidyr)
 ######### 	and generate detection histories for species in each cell
 ######### B) organize food abundance covariates for occupancy models
 
-datum = subset(datum, Location != "NA")
-
-# Change cells from "C#" to simple numbers
-for (c in 1:21){
-  cell = paste0("C",c)
-  datum[datum==cell] = c
-}
-datum$Cell = as.numeric(datum$Cell)
+datum = droplevels(subset(datum, Location != "NA"))	
 
 ######## A -- Create a vector of the focal species
 
@@ -48,7 +53,7 @@ species = c("CRABRA", "OOPPUM", "NORHUM", "ctenid")
 
 for (s in species){
 
-herp = subset(datum, SpeciesCode == s)
+herp = droplevels(subset(datum, SpeciesCode == s))
 
 #herp = droplevels(subset(herp, herp$SVL != 1))	
 # This line eliminates small ctenids (size class = 1)
@@ -59,61 +64,44 @@ herp = subset(datum, SpeciesCode == s)
 ## detected in each grid cell of each plot 
 ## during each of the surveys in each month
 
-DetHist = matrix(NA, nrow = 1, ncol = 5)
-detections = matrix(0, nrow = 21, ncol = 5)
+DetHist = matrix(, nrow = 1, ncol = 5)
+detections = matrix(NA, nrow = 21, ncol = 5)
 
 # Initiate the DETECTION HISTORY for-loop
 
-for (i in 1:14){  # For each plot, 1:14
-  
-  plot = subset(herp, TreeNo == i)  # Subset to a plot
-  
-  if(length(plot[,1])>0){
-    
-    for (j in 1:9){ # For each month, 1:9
-      
-      month = subset(plot, SeshNumeric == j)  # Subset to a month
-      
-      if(length(month[,1])>0){
-        
-        detections = matrix(0, nrow = 21, ncol = 5)
-        
-        for (k in 1:3){ # For each survey occasion
-          
-          survey = subset(month, Occ == k)  # Subset to a survey
-          
-          if(length(survey[,1])>0){
-            
-            (tab = as.data.frame(table(survey$Cell)))	# Tabulate captures by cell
-            
-            for (l in 1:21){
-              if(l %in% tab$Var1){detections[l,k] = subset(tab, Var1==l)$Freq}
-              #  Fill in matrix w/ detections
-            }
-          }
-        } 
-      } else {detections = matrix(0, nrow = 21, ncol = 5)}   
-        
-        detections[,4] = j				# Fill in Month column of matrix
-        detections[,5] = i				# Fill in Tree Number2q column of matrix
-        
-        DetHist = rbind(DetHist, detections)
-        
-        # Binds detection history for surveys
-        # in a plot and month to a running tally
-        # of all surveys among all plots/months
-      
-    }						
-  }
-}	# END DETECTION HISTORY for-loops for month and plot
+for (i in 1:14){					# For each plot, 1:14
+	plot = subset(herp, TreeNo == i)	# Subset to a plot
+
+for (j in 1:9){						# For each month, 1:9
+	month = subset(plot, as.numeric(Sesh) == j)	# Subset to a month
+
+for (k in 1:3){					# For each survey occasion
+	survey = subset(month, Occ == k)		# Subset to a survey
+					
+(tab = as.data.frame(table(survey$Cell)))	# Tabulate captures by cell
+
+detections[,k] = tab$Freq			# Fill in matrix w/ detections
+
+if(max(as.numeric(month$Sesh)) == 2) 	# If it's March with only two surveys,
+	{detections[,3] = NA} 		# Then third survey column are NA
+
+}						# End for-loop for survey occasions
+
+detections[,4] = j				# Fill in Month column of matrix
+detections[,5] = i				# Fill in TreeNo column of matrix
+
+DetHist = rbind(DetHist, detections)	
+	# Binds detection history for surveys
+	# in a plot and month to a running tally
+	# of all surveys among all plots/months
+
+}}	# END DETECTION HISTORY for-loops for month and plot
 
 DetHist = DetHist[-c(1),]
 head(DetHist)
 colnames(DetHist)=c("S1","S2","S3","Month","TreeNo")
-for (m in 1:length(DetHist[,1])){
-  if(DetHist[m,4]==2){DetHist[m,3]=NA}
-} # Replace the third survey in March to be NA
 DetHist2 = as.data.frame(DetHist)
+
 
 ## Reshape the data to format it for 'unmarked'
 DetHist2 = melt(DetHist2, id=c("Month","TreeNo"))
@@ -136,13 +124,8 @@ Season[Season==8] = 2
 Season[Season==9] = 2
 
 # Create a new vector, CellNo, which identifies each cell within tree plot
-x = c(1:21)
-#x = c(1,10,11,12,13,14,15,16,17,18,19,2,20,21,3,4,5,6,7,8,9)
+x = c(1,10,11,12,13,14,15,16,17,18,19,2,20,21,3,4,5,6,7,8,9)
 CellNo = as.data.frame(rep(x,378))
-#if (s == "CRABRA"){CellNo = as.data.frame(rep(x,378))}
-#if (s == "OOPPUM"){CellNo = as.data.frame(rep(x,378))}
-#if (s == "NORHUM"){CellNo = as.data.frame(rep(x,339))}
-#if (s == "ctenid"){CellNo = as.data.frame(rep(x,330))}
 colnames(CellNo) = c("CellNo")
 
 # Change all the counts (which can be greater than 1) to be 1
@@ -167,17 +150,8 @@ assign(paste0(s,"detections"), DetHist4)
 
 } # End the species loop
 
-head(CRABRAdetections,20)	# E.g., CRABRA
-tail(CRABRAdetections,20)	# E.g., CRABRA
-
-head(OOPPUMdetections,10)	# E.g., OOPPUM
-tail(OOPPUMdetections,20)	# E.g., 
-
-head(NORHUMdetections,10)	# E.g., NORHUM
-tail(NORHUMdetections,20)	# E.g., 
-
-head(cteniddetections,10)	# E.g., CTENIDS
-tail(NORHUMdetections,20)	# E.g., 
+head(CRABRAdetections,10)	# E.g.,
+tail(CRABRAdetections,10)	# E.g.,
 
 
 ######## B -- Create vectors describing arthropod abundance
@@ -242,6 +216,7 @@ length(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])[,1])*3 # Numb
 sum(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])) # Number of observations
 
 
+
 ###########################################################################
 ############# II) Use the R library 'RPresence' to perform	  #############
 #############     single-season two-species occupancy 	  	  #############
@@ -249,7 +224,7 @@ sum(na.omit(subset(cteniddetections, LitterMass != "NA")[,5:7])) # Number of obs
 ###########################################################################
 
 # Load the package
-install.packages('/Users/brian/Desktop/RPresence.tar.gz')
+install.packages('/Users/brian/Desktop/RPresence_2.12.24.tar.gz')
 library(RPresence)	 
 
 
