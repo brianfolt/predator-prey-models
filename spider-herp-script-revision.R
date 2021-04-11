@@ -1889,18 +1889,18 @@ modBa = betaA+betaBA+betaBa+betaLL*litter
 psiBa = exp(modBa)/(1+exp(modBa))
 
 ## Bind psiA, psiBA, and psiBa together, and plot them all in one graph
-occupancy = cbind(litter,psiA,psiBA,psiBa)
+occuCB = cbind(litter,psiA,psiBA,psiBa)
 
 ### FIGURE 2A
 # Base plot
-plot(litter, psiA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+plot(occuCB[,"litter"], occuCB[,"psiA"], type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
 	axes=FALSE,	cex.lab=1.2, cex.axis=1.5,
 	xlab="Log(leaf-litter mass [g])", 
 	ylab=expression('Proportion of sites occupied '~psi))
 axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4.5, cex.axis=1.3)
 axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4.5, cex.axis=1.3)
-lines(litter, psiBA, lty=2, lwd=4)
-lines(litter, psiBa, lty=2, lwd=4, col="darkgray")
+lines(occuCB[,"litter"], occuCB[,"psiBA"], lty=2, lwd=4)
+lines(occuCB[,"litter"], occuCB[,"psiBa"], lty=2, lwd=4, col="darkgray")
 text(0.7,0.9, "A", cex=2.5)
 legend("bottomright", c(expression(paste(psi^A,'                ')),
                         expression(paste(psi^BA,'              ')),
@@ -1917,56 +1917,16 @@ rasterImage(image=CRABRA, xleft=4.15,ybottom=0.11,
             xright=4.5,ytop=0.21)
 
 
-
-
-
-library(pryr)
-
-p1.pryr %<a-% {
-  plot(df$x, df$y)
-  text(40, 0, "Random")
-  text(60, 2, "Text")
-  lines(stats::lowess(df$x, df$y))
-}
-
-p2.pryr %<a-% {
-  plot(density(df$y))
-}
-
-
-
-
-
-
-
 # Species interaction factor, given variation in leaf-litter
 # FIGURE 3A
-SIF = (psiA*psiBA)/(psiA*(psiA*psiBA+(1-psiA)*psiBa)) 
-plot(litter, SIF, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,2), 
+SIF = (occuCB$psiA*occuCB$psiBA)/(occuCB$psiA*(occuCB$psiA*occuCB$psiBA+(1-occuCB$psiA)*occuCB$psiBa)) 
+plot(occuCB$litter, SIF, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,2), 
 	axes=F, cex.lab=1.2, cex.axis=2,
 	xlab="Log(leaf-litter mass [g])", ylab="Species interaction factor")
 axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4, cex.axis=1.3)
 axis(2, c(-0.1,0,0.33,0.66,1.0,1.33,1.66,2.00), lwd=4, cex.axis=1.3)
 abline(h=1, lwd=4, col="darkgray",lty=3)
 text(0.7,1.8, "A", cex=2.5)
-
-
-
-
-
-
-
-
-
-
-
-## Plot the two maps side by side
-library(patchwork)
-figure1ab = fig1a + fig1b + plot_layout(byrow=TRUE)
-ggsave("figure1ab.png", width=14, height=6.5)
-
-
-
 
 
 #### DETECTION
@@ -1995,17 +1955,18 @@ detBa = betaPA+betaPB+betaRBA+		# Detection of species B,
 	betaRBa+betaPLL*litter			# given both species are present,
 rBa = exp(detBa)/(1+exp(detBa))		# and species A was not detected
  
-detection = cbind(pA,pB,rBA,rBa)	# Bind all the detection predictions together
+detCB = cbind(pA,pB,rBA,rBa)	# Bind all the detection predictions together
 
 # FIGURE 4A
-plot(litter, pA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+detCB = as.data.frame(detCB)
+plot(detCB$litter, detCB$pA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
 	axes=FALSE,	cex.lab=1.2, cex.axis=2,
 	xlab="Log(leaf-litter mass [g])", 
 	ylab=expression(Detection~probability~italic((p))))
 axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4, cex.axis=1.3)
 axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4, cex.axis=1.3)
-lines(litter, pB, lty=2, lwd=4, col="black")
-lines(litter, rBA, lty=2, lwd=4, col="darkgray")
+lines(detCB$litter, detCB$pB, lty=2, lwd=4, col="black")
+lines(detCB$litter, detCB$rBA, lty=2, lwd=4, col="darkgray")
 #lines(litter, rBa, lty=2, lwd=4, col="darkgrey")
 legend("topright", c(expression(italic(p^A)),expression(italic(p^B)),
 	expression(italic(r^BA))), inset=0.05, cex=1.1,
@@ -2014,7 +1975,7 @@ legend("topright", c(expression(italic(p^A)),expression(italic(p^B)),
 text(0.7,0.9, "A", cex=2.5)
 
 #OR FIGURE 4A WITHOUT LEAF-LITTER COVARIATE, A SIMPLE BAR PLOT
-estimates = c(mean(pA),mean(pB),mean(rBA))
+estimates = c(mean(detCB$pA),mean(detCB$pB),mean(detCB$rBA))
 barplot(estimates, ylab="Detection probability", axes=FALSE, 
 	ylim=c(0,0.6), border=1, names.arg=c(expression(italic(p^A)),
 	expression(italic(p^B)),expression(italic(r^BA))))
@@ -2082,17 +2043,17 @@ modBa = betaA+betaBA+betaBa+betaLL*litter	# psiBa
 psiBa = exp(modBa)/(1+exp(modBa))
 
 ## Bind predictions together, and plot them all in one graph
-occupancy = cbind(litter,psiA,psiBA,psiBa)
+occuOP = cbind(litter,psiA,psiBA,psiBa)
 
 # FIGURE 2B
-plot(litter, psiA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+plot(occuOP[,"litter"], occuOP[,"psiA"], type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
 	axes=FALSE,	cex.lab=1.2, cex.axis=1.5,
 	xlab="Log(leaf-litter mass [g])", 
 	ylab=expression('Proportion of sites occupied '~psi))
 axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4.5, cex.axis=1.3)
 axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4.5, cex.axis=1.3)
-lines(litter, psiBA, lty=2, lwd=4)
-lines(litter, psiBa, lty=2, lwd=4, col="darkgray")
+lines(occuOP[,"litter"], occuOP[,"psiBA"], lty=2, lwd=4)
+lines(occuOP[,"litter"], occuOP[,"psiBa"], lty=2, lwd=4, col="darkgray")
 text(0.7,0.9, "B", cex=2.5)
 #legend("bottomright", c(expression(psi^A),expression(psi^BA),
 #	expression(psi^Ba)), inset=0.03, cex=1.1, box.lwd=3,
@@ -2100,6 +2061,7 @@ text(0.7,0.9, "B", cex=2.5)
 legend("bottomright", c(expression(psi^A),expression(psi^BA),
 	expression(psi^Ba)), inset=0.03, cex=1.1, box.lwd=3,
 	lty=c(1,2,2), col=c("black","black","darkgray"),lwd=c(3,3,3))
+
 
 # SIF plot
 # FIGURE 3B
@@ -2139,17 +2101,17 @@ detBa = betaPA+betaPB+betaRBA+		# Detection of species B,
 	betaRBa+betaPLL*litter			# given both species are present,
 rBa = exp(detBa)/(1+exp(detBa))		# and species A was not detected
  
-detection = cbind(pA,pB,rBA,rBa)	# Bind all the detection predictions together
+detOP = cbind(pA,pB,rBA,rBa)	# Bind all the detection predictions together
 
 # FIGURE 4B
-plot(litter, pA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+plot(detOP$litter, detOP$pA, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
 	axes=FALSE,	cex.lab=1.2, cex.axis=2,
 	xlab="Log(leaf-litter mass [g])", 
 	ylab=expression(Detection~probability~italic((p))))
 axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4, cex.axis=1.3)
 axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4, cex.axis=1.3)
-lines(litter, pB, lty=2, lwd=4, col="black")
-lines(litter, rBA, lty=2, lwd=4, col="darkgray")
+lines(detOP$litter, detOP$pB, lty=2, lwd=4, col="black")
+lines(detOP$litter, detOP$rBA, lty=2, lwd=4, col="darkgray")
 legend("topright", c(expression(italic(p^A)),expression(italic(p^B)),
 	expression(italic(r^BA))), inset=0.05, cex=1.2,
 	lty=c(1,2,2), col=c("black","black","darkgray"), box.lwd=2,
@@ -2157,7 +2119,7 @@ legend("topright", c(expression(italic(p^A)),expression(italic(p^B)),
 text(0.8,0.9, "B", cex=2.5)
 
 #OR FIGURE 4B WITHOUT LEAF-LITTER COVARIATE, A SIMPLE BAR PLOT
-estimates = c(mean(pA),mean(pB),mean(rBA))
+estimates = c(mean(detOP$pA),mean(detOP$pB),mean(detOP$rBA))
 barplot(estimates, ylab="Detection probability", axes=FALSE,
 	ylim=c(0,0.5),
 	names.arg=c(expression(italic(p^A)),expression(italic(p^B)),
@@ -2298,35 +2260,141 @@ mean(rBa)
 
 
 
+#####################################################
+###### D) Make graphs for                      ######
+###### Journal of Tropical Ecology  manuscript ###### 
+#####################################################
 
 
+##### Figure 2 
+dev.off()
+par(mfrow=c(2,1), oma=c(5,4,0,0)+0.5, mar=c(1,1,1,1)+0.5) 
+
+# Occupancy patterns for CRABRA
+plot(occuCB[,"litter"], occuCB[,"psiA"], type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+     axes=FALSE,	cex.lab=1.2, cex.axis=1.5,
+     xlab="Log(leaf-litter mass [g])", 
+     ylab=expression('Proportion of sites occupied '~psi))
+axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4.5, cex.axis=1.3)
+axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4.5, cex.axis=1.3)
+lines(occuCB[,"litter"], occuCB[,"psiBA"], lty=2, lwd=4)
+lines(occuCB[,"litter"], occuCB[,"psiBa"], lty=2, lwd=4, col="darkgray")
+text(0.7,0.9, "A", cex=2.5)
+
+# Legend
+legend("bottomright", c(expression(paste(psi^A,'                ')),
+                        expression(paste(psi^BA,'              ')),
+                        expression(paste(psi^Ba,'               '))), 
+       inset=0.03, cex=1.3, box.lwd=3, lty=c(1,2,2), 
+       col=c("black","black","darkgray"),lwd=c(3,3,3))
+rasterImage(image=CTENID, xleft=3.8,ybottom=0.11,
+            xright=4.15,ytop=0.21)
+rasterImage(image=CRABRA, xleft=3.8,ybottom=0,
+            xright=4.15,ytop=0.10)
+rasterImage(image=CTENID, xleft=3.8,ybottom=0.22,
+            xright=4.15,ytop=0.32)
+rasterImage(image=CRABRA, xleft=4.15,ybottom=0.11,
+            xright=4.5,ytop=0.21)
+
+# Occupancy pattern for OOPPUM
+plot(occuOP[,"litter"], occuOP[,"psiA"], type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,1), 
+     axes=FALSE,	cex.lab=1.2, cex.axis=1.5,
+     xlab="Log(leaf-litter mass [g])", 
+     ylab=expression('Proportion of sites occupied '~psi))
+axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4.5, cex.axis=1.3)
+axis(2, c(-0.2,0,0.2,0.4,0.6,0.8,1), lwd=4.5, cex.axis=1.3)
+lines(occuOP[,"litter"], occuOP[,"psiBA"], lty=2, lwd=4)
+lines(occuOP[,"litter"], occuOP[,"psiBa"], lty=2, lwd=4, col="darkgray")
+text(0.7,0.9, "B", cex=2.5)
+mtext(expression('                                                Proportion of sites occupied '~psi), 
+      side=2, line=3, cex=1.4, col="black")  
+mtext("Log(leaf-litter mass [g])", side=1, line=3.5, cex=1.4, col="black")  
+arrows(3.2, 0, 3.2, 0.1, lwd=4, length=0.08)
 
 
+##### Figure 3 
+dev.off()
+par(mfrow=c(2,1), oma=c(5,4,0,0)+0.5, mar=c(1,1,1,1)+0.5) 
+
+## SIF for CRABRA
+occuCB = data.frame(occuCB)
+SIF = (occuCB$psiA*occuCB$psiBA)/(occuCB$psiA*(occuCB$psiA*occuCB$psiBA+(1-occuCB$psiA)*occuCB$psiBa)) 
+plot(occuCB$litter, SIF, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,2), 
+     axes=F, cex.lab=1.2, cex.axis=2,
+     xlab="Log(leaf-litter mass [g])", ylab="Species interaction factor")
+axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4, cex.axis=1.3)
+axis(2, c(-0.1,0,0.33,0.66,1.0,1.33,1.66,2.00), lwd=4, cex.axis=1.3)
+abline(h=1, lwd=4, col="darkgray",lty=3)
+arrows(3.2, 0, 3.2, 0.65, lwd=4, length=0.08)
+text(0.7,1.8, "A", cex=2.5)
+rasterImage(image=CTENID, xleft=3.5,ybottom=1.6,
+            xright=4.05,ytop=2)
+rasterImage(image=CRABRA, xleft=4,ybottom=1.6,
+            xright=4.6,ytop=2)
+
+## SIF for OOPPUM
+occuOP = as.data.frame(occuOP)
+SIF = (occuOP$psiA*occuOP$psiBA)/(occuOP$psiA*(occuOP$psiA*occuOP$psiBA+(1-occuOP$psiA)*occuOP$psiBa)) 
+plot(occuOP$litter, SIF, type="l", lty=1, lwd=4, xlim=c(0.5,4.5), ylim=c(0,2), 
+     axes=F, cex.lab=1.2, cex.axis=2,
+     xlab="Log(leaf-litter mass [g])", ylab="Species interaction factor")
+axis(1, c(0,0.5,1.5,2.5,3.5,4.5), lwd=4, cex.axis=1.3)
+axis(2, c(-0.1,0,0.33,0.66,1.0,1.33,1.66,2.00), lwd=4, cex.axis=1.3)
+abline(h=1, lwd=4, col="darkgray",lty=3)
+text(0.7,1.8, "B", cex=2.5)
+arrows(3.2, 0, 3.2, 0.25, lwd=4, length=0.08)
+mtext("Log(leaf-litter mass [g])", side=1, line=3.5, cex=1.4, col="black")  
+mtext(expression('                                                  Species interaction factor'), 
+      side=2, line=3, cex=1.4, col="black")  
+rasterImage(image=CTENID, xleft=3.5,ybottom=1.6,
+            xright=4.05,ytop=2)
+rasterImage(image=OOPPUM, xleft=4,ybottom=1.6,
+            xright=4.6,ytop=2)
 
 
+##### Figure 4 
+dev.off()
+par(mfrow=c(2,1), oma=c(3.5,4,0,0)+0.5, mar=c(1,1,1,1)+0.5) 
 
+## CRABRA
+estimates = c(mean(detCB$pA),mean(detCB$pB),mean(detCB$rBA))
+barplot(estimates, ylab="Detection probability", axes=FALSE, 
+        ylim=c(0,0.6), border=1, names.arg=c(expression(italic(p^A)),
+                                             expression(italic(p^B)),expression(italic(r^BA))))
+axis(2, lwd=3, cex.axis=1.3, c(0,0.1,0.2,0.3,0.4,0.5,0.6))
+text(0.4,0.55, "A", cex=2.5)
+rasterImage(image=CTENID, xleft=0.5,ybottom=0.11,
+            xright=0.95,ytop=0.21)
+rasterImage(image=CRABRA, xleft=1.65,ybottom=0.3,
+            xright=2.2,ytop=0.4)
+rasterImage(image=CTENID, xleft=2.6,ybottom=0.45,
+            xright=3.1,ytop=0.55)
+rasterImage(image=CRABRA, xleft=3.1,ybottom=0.45,
+            xright=3.65,ytop=0.55)
+
+## OOPPUM
+detOP = as.data.frame(detOP)
+estimates = c(mean(detOP$pA),mean(detOP$pB),mean(detOP$rBA))
+barplot(estimates, ylab="Detection probability", axes=FALSE,
+        ylim=c(0,0.55),
+        names.arg=c(expression(italic(p^A)),expression(italic(p^B)),
+                    expression(italic(r^BA))))
+axis(2, lwd=3, cex.axis=1.3, c(0,0.1,0.2,0.3,0.4,0.5))
+text(0.4,0.45, "B", cex=2.5)
+mtext("Parameters", side=1, line=3.5, cex=1.4, col="black")  
+mtext(expression('                                                 Detection probability'), 
+      side=2, line=3, cex=1.4, col="black")  
+rasterImage(image=CTENID, xleft=0.5,ybottom=0.12,
+            xright=0.95,ytop=0.22)
+rasterImage(image=OOPPUM, xleft=1.65,ybottom=0.25,
+            xright=2.1,ytop=0.35)
+rasterImage(image=CTENID, xleft=2.6,ybottom=0.4,
+            xright=3.1,ytop=0.5)
+rasterImage(image=OOPPUM, xleft=3.1,ybottom=0.4,
+            xright=3.55,ytop=0.5)
 
 
 
 #############################################################################
 ################################## THE END ##################################
 #############################################################################
-
-
-
-### Exploratory GGPLOT for figures
-
-# Ggplot
-occupancy = as.data.frame(occupancy)
-(fig2a = ggplot(occupancy, aes(x=litter, y=psiA)) + 
-    geom_line(lwd=1.5, colour="black") +
-    labs(x="Log(leaf-litter mass [g])", 
-         y=expression('Proportion of sites occupied '~psi),
-         cex=2.5) +
-    scale_y_continuous(limits=c(0,1)) +
-    theme_classic() +
-    theme(axis.text = element_text(size=12, colour="black"),
-          axis.title = element_text(size=14),
-          axis.line = element_line(size = 1.25)))
-(fig2a = fig2a + geom_line(aes(litter, y=psiBA), lwd=1.5, colour='black', linetype="dashed"))
-(fig2a = fig2a + geom_line(aes(x=litter, y=psiBa), colour='darkgrey', lwd=1.5, linetype="dashed"))
